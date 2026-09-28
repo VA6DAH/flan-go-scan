@@ -59,8 +59,34 @@ Prioritize findings by risk. Be concise and actionable. Focus on:
 
 Do not repeat raw scan data. Summarize and analyze.`
 
+// TogetherAPIKey returns the Together token from the environment or a Podman secret file.
+func TogetherAPIKey() string {
+	if key := strings.TrimSpace(os.Getenv("TOGETHER_API_KEY")); key != "" {
+		return key
+	}
+	if path := strings.TrimSpace(os.Getenv("TOGETHER_API_KEY_FILE")); path != "" {
+		if key := readSecretFile(path); key != "" {
+			return key
+		}
+	}
+	for _, path := range []string{"/run/secrets/TOGETHER_API_KEY", "/run/secrets/together_api_key"} {
+		if key := readSecretFile(path); key != "" {
+			return key
+		}
+	}
+	return ""
+}
+
+func readSecretFile(path string) string {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(data))
+}
+
 func ValidateAPIKey() error {
-	apiKey := os.Getenv("TOGETHER_API_KEY")
+	apiKey := TogetherAPIKey()
 	if apiKey == "" {
 		return fmt.Errorf("TOGETHER_API_KEY not set")
 	}
@@ -82,7 +108,7 @@ func ValidateAPIKey() error {
 }
 
 func Analyze(ctx context.Context, results []ScanResult, outputDir string, sc *ScanContext) (*AnalysisResult, error) {
-	apiKey := os.Getenv("TOGETHER_API_KEY")
+	apiKey := TogetherAPIKey()
 	if apiKey == "" {
 		return nil, fmt.Errorf("TOGETHER_API_KEY not set")
 	}
@@ -167,7 +193,7 @@ func Analyze(ctx context.Context, results []ScanResult, outputDir string, sc *Sc
 }
 
 func AnalyzeBrief(ctx context.Context, results []ScanResult, sc *ScanContext) (string, error) {
-	apiKey := os.Getenv("TOGETHER_API_KEY")
+	apiKey := TogetherAPIKey()
 	if apiKey == "" {
 		return "", fmt.Errorf("TOGETHER_API_KEY not set")
 	}

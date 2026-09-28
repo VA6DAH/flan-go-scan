@@ -378,7 +378,7 @@ func main() {
 		slog.Error("config error", "err", err)
 		os.Exit(1)
 	}
-	togetherAPIKey := strings.TrimSpace(os.Getenv("TOGETHER_API_KEY"))
+	togetherAPIKey := scanner.TogetherAPIKey()
 	scanStarted := time.Now()
 	if res == "" {
 		res = strings.TrimSpace(cfg.DNS.Resolver)
