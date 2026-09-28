@@ -5,16 +5,8 @@ services:
       context: .
       dockerfile: Dockerfile
     working_dir: /work
-    secrets:
-      - together_api_key
     volumes:
       - flan-reports:/work:U
-    # CLI scanner: podman compose run --rm flan -t scanme.nmap.org --analyze
-
-secrets:
-  together_api_key:
-    name: together_api_key
-    external: true
 
 volumes:
   flan-reports:
