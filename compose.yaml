@@ -1,0 +1,14 @@
+services:
+  flan:
+    image: localhost/flan:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /work
+    volumes:
+      - flan-reports:/work:U
+
+volumes:
+  flan-reports:
+    name: flan-reports
+    external: true

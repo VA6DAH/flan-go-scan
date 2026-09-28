@@ -75,6 +75,34 @@ docker run --rm flan --help
 docker run --rm flan -t scanme.nmap.org --json
 ```
 
+Podman (from the cloned repo):
+
+```
+podman build -t localhost/flan:latest .
+podman volume create flan-reports
+podman run --rm -v flan-reports:/work:U -w /work localhost/flan:latest --help
+podman run --rm -v flan-reports:/work:U -w /work localhost/flan:latest -t scanme.nmap.org
+```
+
+`compose.yaml` covers scans that do not need Together AI. On Windows, `podman compose` calls Docker Compose, which cannot attach Podman secrets:
+
+```
+podman compose run --rm flan -t scanme.nmap.org
+```
+
+`--analyze` needs `TOGETHER_API_KEY`. Create a Podman secret and pass it on `podman run`:
+
+```
+podman secret create together_api_key -
+podman run --rm --secret together_api_key,type=env,target=TOGETHER_API_KEY -v flan-reports:/work:U -w /work localhost/flan:latest -t scanme.nmap.org --analyze
+```
+
+PowerShell 7 shortcut (add to `$PROFILE`):
+
+```
+function flan { podman run --rm --secret together_api_key,type=env,target=TOGETHER_API_KEY -v flan-reports:/work:U -w /work localhost/flan:latest @args }
+```
+
 ## Usage
 
 ```
@@ -331,7 +359,7 @@ When you run `flan verify --run`, Flan derives bounded HTTP targets from scan re
 Security-header findings are generated only for HTTP `2xx/3xx` responses. On `4xx/5xx` responses, which are common on load balancer and CDN default pages, Flan reports header checks as skipped instead of treating them as header failures.
 
 > [!WARNING]
-Keep provider credentials and API keys out of config files and committed shell scripts. Use environment variables such as `TOGETHER_API_KEY`, `CLOUDFLARE_API_TOKEN`, and `AWS_PROFILE`, or inject them through your CI secret store.
+Keep provider credentials and API keys out of config files and committed shell scripts. Use environment variables such as `TOGETHER_API_KEY`, `CLOUDFLARE_API_TOKEN`, and `AWS_PROFILE`, a Podman secret (`together_api_key`), or your CI secret store.
 
 ### Control Plane & Discovery
 
